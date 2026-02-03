@@ -4,9 +4,7 @@
  */
 package App;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.logging.Level;
@@ -35,8 +33,8 @@ public class interfaceCreation extends javax.swing.JFrame {
     
     int xx, xy;
     
-    Connection con1;
-    PreparedStatement insert1, insert2;
+    private static final int MIN_PASSWORD_LENGTH = 6;
+    private static final String PHONE_REGEX = "\\+?\\d{6,15}";
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -304,65 +302,75 @@ public class interfaceCreation extends javax.swing.JFrame {
 
     private void btnSoumissionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSoumissionActionPerformed
 
-        String Nom = nom.getText();
-        String Prenom = prenom.getText();
-        String Localisation = localisation.getText();
-        String tel = telephone.getText();
-        String MotDePasse = motDePasse.getText();
-        String MotDePasseRepete = motDePasseRep.getText();
-        
+
+        String Nom = nom.getText().trim();
+        String Prenom = prenom.getText().trim();
+        String Localisation = localisation.getText().trim();
+        String tel = telephone.getText().trim();
+        String MotDePasse = new String(motDePasse.getPassword());
+        String MotDePasseRepete = new String(motDePasseRep.getPassword());
+
+        if (Nom.isEmpty() || Prenom.isEmpty() || Localisation.isEmpty() || tel.isEmpty() || MotDePasse.isEmpty() || MotDePasseRepete.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Veuillez renseigner tous les champs", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!tel.matches(PHONE_REGEX)) {
+            JOptionPane.showMessageDialog(this, "Numéro de téléphone invalide", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (MotDePasse.length() < MIN_PASSWORD_LENGTH) {
+            JOptionPane.showMessageDialog(this, "Le mot de passe doit contenir au moins " + MIN_PASSWORD_LENGTH + " caractères", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!MotDePasse.equals(MotDePasseRepete)) {
+            JOptionPane.showMessageDialog(this, "Mot de passe mal répété", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            
-            con1 = DriverManager.getConnection("jdbc:mysql://localhost/hotel", "root", "");
-            
-            insert2 = con1.prepareStatement("SELECT * FROM client");
-            
-            ResultSet rs = insert2.executeQuery();
-            
-            boolean ok = true;
-            
-            while(rs.next()){
-                if(rs.getString("nom").equals(Nom) && rs.getString("prenom").equals(Prenom)){
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(interfaceCreation.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Pilote JDBC introuvable", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try (var con1 = DatabaseConnection.getConnection();
+             PreparedStatement insert2 = con1.prepareStatement("SELECT 1 FROM client WHERE nom = ? AND prenom = ? LIMIT 1")) {
+            insert2.setString(1, Nom);
+            insert2.setString(2, Prenom);
+
+            try (ResultSet rs = insert2.executeQuery()) {
+                if (rs.next()) {
                     JOptionPane.showMessageDialog(this, "Cet utilisateur existe déjà", "Erreur", JOptionPane.ERROR_MESSAGE);
-                    ok = false;
-                    break;
+                    return;
                 }
             }
-            
-            if(Nom.equals("") || Prenom.equals("") || Localisation.equals("") || tel.equals("") || MotDePasse.equals("")){
-                JOptionPane.showMessageDialog(this, "Veuillez renseigner tous les champs", "Erreur", JOptionPane.ERROR_MESSAGE);
-            } else {
-                if(!MotDePasse.equals(MotDePasseRepete)){
-                    if(ok){
-                        JOptionPane.showMessageDialog(this, "Mot de passe mal répété", "Erreur", JOptionPane.ERROR_MESSAGE);
-                    }
-                } else {
-                    if(ok){
-                        insert1 = con1.prepareStatement("INSERT INTO client (nom, prenom, localisation, telephone, mot_de_passe) VALUES (?, ?, ?, ?, ?)");
-                        insert1.setString(1, Nom);
-                        insert1.setString(2, Prenom);
-                        insert1.setString(3, Localisation);
-                        insert1.setString(4, tel);
-                        insert1.setString(5, MotDePasse);
 
-                        insert1.executeUpdate();
+            try (PreparedStatement insert1 = con1.prepareStatement("INSERT INTO client (nom, prenom, localisation, telephone, mot_de_passe) VALUES (?, ?, ?, ?, ?)")) {
+                insert1.setString(1, Nom);
+                insert1.setString(2, Prenom);
+                insert1.setString(3, Localisation);
+                insert1.setString(4, tel);
+                insert1.setString(5, MotDePasse);
 
-                        JOptionPane.showMessageDialog(this, "Inscription effectuée");
+                insert1.executeUpdate();
+            }
 
-                        nom.setText("");
-                        prenom.setText("");
-                        localisation.setText("");
-                        telephone.setText("");
-                        motDePasse.setText("");
-                        motDePasseRep.setText("");
-                    }
-                }
-            } 
-        } catch (ClassNotFoundException ex) {
-                Logger.getLogger(interfaceCreation.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Inscription effectuée");
+
+            nom.setText("");
+            prenom.setText("");
+            localisation.setText("");
+            telephone.setText("");
+            motDePasse.setText("");
+            motDePasseRep.setText("");
         } catch (SQLException ex) {
-                    Logger.getLogger(interfaceCreation.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(interfaceCreation.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Erreur de connexion à la base de données", "Erreur", JOptionPane.ERROR_MESSAGE);
         }
 
     }//GEN-LAST:event_btnSoumissionActionPerformed

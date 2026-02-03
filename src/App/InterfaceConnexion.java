@@ -4,9 +4,7 @@
  */
 package App;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.logging.Level;
@@ -24,6 +22,7 @@ public class InterfaceConnexion extends javax.swing.JFrame {
     public InterfaceConnexion() {
         initComponents();
         setLocationRelativeTo(null);
+        getRootPane().setDefaultButton(btnConnexion);
     }
 
     /**
@@ -33,11 +32,9 @@ public class InterfaceConnexion extends javax.swing.JFrame {
      */
     @SuppressWarnings("unchecked")
     
-    int xx, xy, x ,y;
-    
-    Connection con1, con2;
-    PreparedStatement insert, insertion;
-    ResultSet rss;
+    int xx, xy, x, y;
+
+    private static final int MIN_PASSWORD_LENGTH = 6;
     
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -279,81 +276,77 @@ public class InterfaceConnexion extends javax.swing.JFrame {
 
     private void btnConnexionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConnexionActionPerformed
 
-        String Nom = nom.getText();
-        String MotDePasse = motDePasse.getText();
-        
-        boolean connectAdmin = false;
-        
+
+        String Nom = nom.getText().trim();
+        String MotDePasse = new String(motDePasse.getPassword());
+
+        if (Nom.isEmpty() || MotDePasse.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Veuillez renseigner tous les champs", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (MotDePasse.length() < MIN_PASSWORD_LENGTH) {
+            JOptionPane.showMessageDialog(null, "Le mot de passe doit contenir au moins " + MIN_PASSWORD_LENGTH + " caractères", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            
-            con2 = DriverManager.getConnection("jdbc:mysql://localhost/hotel", "root", "");
-            
-            insertion = con2.prepareStatement("SELECT * FROM administrateur");
-            
-            ResultSet r = insertion.executeQuery();
-            
-            while(r.next()){
-                if(r.getString("pseudo").equals(nom.getText()) && r.getString("mot_de_passe").equals(motDePasse.getText())){
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(InterfaceConnexion.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Pilote JDBC introuvable", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean connectAdmin = false;
+        try (var con = DatabaseConnection.getConnection();
+             PreparedStatement insertion = con.prepareStatement("SELECT pseudo FROM administrateur WHERE pseudo = ? AND mot_de_passe = ?")) {
+            insertion.setString(1, Nom);
+            insertion.setString(2, MotDePasse);
+
+            try (ResultSet r = insertion.executeQuery()) {
+                if (r.next()) {
                     JOptionPane.showMessageDialog(null, "Connexion réussie");
-                    
+
                     menuAdministrateur mn = new menuAdministrateur(r.getString("pseudo"));
                     mn.setVisible(true);
-                    
+
                     mn.setLocation(300, 150);
 
                     this.setVisible(false);
-                    
                     connectAdmin = true;
-                    break;
                 }
             }
-            
-        } catch (ClassNotFoundException | SQLException ex) {
+        } catch (SQLException ex) {
             Logger.getLogger(InterfaceConnexion.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Erreur de connexion à la base de données", "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-        
-        if(!connectAdmin){
-            try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            
-            con1 = DriverManager.getConnection("jdbc:mysql://localhost/hotel", "root", "");
-            
-            insert = con1.prepareStatement("SELECT * FROM client");
-            
-            ResultSet rs = insert.executeQuery();
-            
-            boolean ok = false;
-            
-            if(nom.getText().equals("")){
-                JOptionPane.showMessageDialog(null, "Veuillez renseigner tous les champs", "Erreur", JOptionPane.ERROR_MESSAGE);
-                ok = true;
-            } else {
-                while(rs.next()){
-                    if(rs.getString("nom").equals(Nom) && rs.getString("mot_de_passe").equals(MotDePasse)){
-                        ok =  true;
-                        
+
+        if (!connectAdmin) {
+            try (var con = DatabaseConnection.getConnection();
+                 PreparedStatement insert = con.prepareStatement("SELECT id, nom, prenom, telephone FROM client WHERE nom = ? AND mot_de_passe = ?")) {
+                insert.setString(1, Nom);
+                insert.setString(2, MotDePasse);
+
+                try (ResultSet rs = insert.executeQuery()) {
+                    if (rs.next()) {
                         JOptionPane.showMessageDialog(null, "Connexion réussie");
-                
+
                         menuClient m = new menuClient(rs.getString("nom"), rs.getString("prenom"), rs.getString("telephone"), rs.getInt("id"));
-                        //m.r = rs;
                         m.setVisible(true);
 
                         this.setVisible(false);
-                        
-                        break;
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Compte introuvable", "Erreur", JOptionPane.ERROR_MESSAGE);
                     }
                 }
+            } catch (SQLException ex) {
+                Logger.getLogger(InterfaceConnexion.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(null, "Erreur de connexion à la base de données", "Erreur", JOptionPane.ERROR_MESSAGE);
             }
-            
-            if(!ok){
-                JOptionPane.showMessageDialog(null, "Compte introuvable", "Erreur", JOptionPane.ERROR_MESSAGE);
-            }
-            
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(InterfaceConnexion.class.getName()).log(Level.SEVERE, null, ex);
         }
-        }
+
     }//GEN-LAST:event_btnConnexionActionPerformed
 
     private void jPanel1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel1MousePressed
