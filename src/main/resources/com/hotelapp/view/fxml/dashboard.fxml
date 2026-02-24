@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            stylesheets="@../css/modern.css"
+            styleClass="root">
+
+    <!-- Main Container with Background -->
+    <VBox style="-fx-background-color: #F5F6FA;">
+        
+        <!-- Header -->
+        <HBox styleClass="header" spacing="20" alignment="CENTER_LEFT">
+            <Label text="🏨 HotelApp" styleClass="header-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="userLabel" text="Administrateur" styleClass="text-muted"/>
+            <Button text="Déconnexion" styleClass="btn,btn-outline"/>
+        </HBox>
+
+        <!-- Main Content -->
+        <HBox VBox.vgrow="ALWAYS">
+            
+            <!-- Sidebar -->
+            <VBox styleClass="sidebar" spacing="4">
+                <Button text="🏠 Dashboard" styleClass="sidebar-item" maxWidth="INFINITY"/>
+                <Button text="🛏️ Chambres" styleClass="sidebar-item" maxWidth="INFINITY"/>
+                <Button text="📅 Réservations" styleClass="sidebar-item" maxWidth="INFINITY"/>
+                <Button text="👥 Clients" styleClass="sidebar-item" maxWidth="INFINITY"/>
+                <Button text="💰 Facturation" styleClass="sidebar-item" maxWidth="INFINITY"/>
+                <Button text="💬 Chat" styleClass="sidebar-item" maxWidth="INFINITY"/>
+                <Region VBox.vgrow="ALWAYS"/>
+                <Button text="⚙️ Paramètres" styleClass="sidebar-item" maxWidth="INFINITY"/>
+            </VBox>
+
+            <!-- Content Area -->
+            <VBox HBox.hgrow="ALWAYS" padding="24" spacing="20">
+                
+                <!-- Stats Cards -->
+                <HBox spacing="20">
+                    <VBox styleClass="card" minWidth="200" spacing="8">
+                        <Label text="Chambres totales" styleClass="text-muted"/>
+                        <Label text="24" styleClass="room-number"/>
+                        <Label text="dont 18 disponibles" styleClass="text-muted"/>
+                    </VBox>
+                    <VBox styleClass="card" minWidth="200" spacing="8">
+                        <Label text="Réservations aujourd'hui" styleClass="text-muted"/>
+                        <Label text="8" styleClass="room-number" style="-fx-text-fill: #3498DB;"/>
+                        <Label text="6 confirmées" styleClass="text-success"/>
+                    </VBox>
+                    <VBox styleClass="card" minWidth="200" spacing="8">
+                        <Label text="Revenus du mois" styleClass="text-muted"/>
+                        <Label text="45,200 €" styleClass="room-price"/>
+                        <Label text="+12% vs mois dernier" styleClass="text-success"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Main Panel -->
+                <HBox spacing="20" VBox.vgrow="ALWAYS">
+                    
+                    <!-- Room List -->
+                    <VBox HBox.hgrow="ALWAYS" spacing="16">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Label text="Liste des chambres" styleClass="header-title" style="-fx-font-size: 18;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <TextField promptText="🔍 Rechercher..." styleClass="text-field" maxWidth="250"/>
+                            <Button text="+ Ajouter" styleClass="btn,btn-primary"/>
+                        </HBox>
+
+                        <!-- Room Grid -->
+                        <ScrollPane fitToWidth="true" styleClass="card" VBox.vgrow="ALWAYS">
+                            <GridPane hgap="16" vgap="16">
+                                <!-- Room cards will be populated dynamically -->
+                            </GridPane>
+                        </ScrollPane>
+                    </VBox>
+
+                    <!-- Quick Actions Panel -->
+                    <VBox spacing="16" minWidth="300">
+                        <Label text="Actions rapides" styleClass="header-title" style="-fx-font-size: 18;"/>
+                        
+                        <VBox styleClass="card" spacing="12">
+                            <Label text="Nouvelle réservation" styleClass="font-semibold"/>
+                            <DatePicker promptText="Date d'arrivée"/>
+                            <DatePicker promptText="Date de départ"/>
+                            <ComboBox promptText="Type de chambre"/>
+                            <Button text="Rechercher" styleClass="btn,btn-primary" maxWidth="INFINITY"/>
+                        </VBox>
+
+                        <VBox styleClass="card" spacing="12">
+                            <Label text="Dernières activités" styleClass="font-semibold"/>
+                            <VBox spacing="8">
+                                <Label text="• Réservation #124 confirmée" styleClass="text-muted" style="-fx-font-size: 12;"/>
+                                <Label text="• Client John Doe a thérapeutisé" styleClass="text-muted" style="-fx-font-size: 12;"/>
+                                <Label text="• Facture #89 générée" styleClass="text-muted" style="-fx-font-size: 12;"/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</StackPane>
